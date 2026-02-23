@@ -15,9 +15,12 @@ const app = express();
 const server = http.createServer(app);
 
 // ================= SOCKET WITH AUTH =================
-const io = new Server(server, {
-  cors: { origin: "*" }
-});
+const cors = require("cors");
+
+app.use(cors({
+  origin: "*",
+  credentials: true
+}));
 
 // Socket JWT Auth
 io.use((socket, next) => {
