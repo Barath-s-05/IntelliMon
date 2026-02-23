@@ -511,31 +511,31 @@ function Dashboard() {
                     <li>Open Terminal / Command Prompt.</li><br />
                     <li>Navigate to the folder where the file is downloaded.</li><br />
                     <li>Install dependencies:</li><br />
+
+                    <div className="command-box">npm install axios</div><br />
+
+                      <p>Then run:</p><br />
+
+                      <div className="command-box"><br />
+                        node intellimon-agent.js --api-key={selectedAgentObj.api_key}<br />
+                      </div><br />
+
+                      <button
+                        style={{ marginTop: 20 }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            `node intellimon-agent.js --api-key=${selectedAgentObj.api_key}`
+                          );
+                        }}
+                      >
+                        Copy Command
+                      </button><br /> 
+
+                      <p style={{ marginTop: 10, opacity: 0.7 }}>
+                        Make sure you are inside the same folder where
+                        <code> intellimon-agent.js </code> is located before running the command.
+                      </p>
                   </ol>
-
-                  <div className="command-box">npm install axios</div><br />
-
-                  <p>Then run:</p><br />
-
-                  <div className="command-box"><br />
-                    node intellimon-agent.js --api-key={selectedAgentObj.api_key}<br />
-                  </div><br />
-
-                  <button
-                    style={{ marginTop: 20 }}
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        `node intellimon-agent.js --api-key=${selectedAgentObj.api_key}`
-                      );
-                    }}
-                  >
-                    Copy Command
-                  </button><br /> 
-
-                  <p style={{ marginTop: 10, opacity: 0.7 }}>
-                    Make sure you are inside the same folder where
-                    <code> intellimon-agent.js </code> is located before running the command.
-                  </p>
                 </div>
               </>
             )}
