@@ -264,6 +264,13 @@ function Dashboard() {
               </div>
             )}
 
+            {agents.length === 0 && (
+              <div className="install-banner">
+                No active agents detected.
+                Please open <strong>Install Agent</strong> from the sidebar and connect your first system.
+              </div>
+            )}
+
             {/* OVERVIEW KPIs */}
             <div className="kpi-grid">
               <div className="glass-card kpi-card">
@@ -480,6 +487,30 @@ function Dashboard() {
                 >
                   Download Agent
                 </button>
+
+                <div className="install-steps">
+                  <h3>Installation Steps</h3>
+
+                  <ol>
+                    <li>Download the agent file below.</li>
+                    <li>Open Terminal / Command Prompt.</li>
+                    <li>Navigate to the folder where the file is downloaded.</li>
+                    <li>Install dependencies:</li>
+                  </ol>
+
+                  <div className="command-box">npm install axios</div>
+
+                  <p>Then run:</p>
+
+                  <div className="command-box">
+                    node intellimon-agent.js --api-key={selectedAgentObj.api_key}
+                  </div>
+
+                  <p style={{ marginTop: 10, opacity: 0.7 }}>
+                    Make sure you are inside the same folder where
+                    <code> intellimon-agent.js </code> is located before running the command.
+                  </p>
+                </div>
               </>
             )}
           </div>

@@ -305,8 +305,29 @@ button:disabled {
 .command-box {
   margin-top: 10px;
   padding: 12px;
-  background: rgba(0, 255, 255, 0.08);
   border-radius: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 245, 255, 0.3);
   font-family: monospace;
-  word-break: break-all;
+  color: #00f5ff;
 }
+
+.install-banner {
+  margin-bottom: 25px;
+  padding: 14px 20px;
+  border-radius: 10px;
+  background: rgba(0, 245, 255, 0.08);
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  color: #00f5ff;
+  font-weight: 500;
+}
+
+.install-steps {
+  margin-top: 30px;
+}
+
+.install-steps ol {
+  margin-left: 20px;
+  margin-bottom: 15px;
+}
+
