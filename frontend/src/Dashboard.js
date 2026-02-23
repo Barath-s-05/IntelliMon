@@ -491,7 +491,7 @@ function Dashboard() {
                   <h3>Installation Steps</h3>
 
                   <ol>
-                    <li>Download the agent file below.</li>
+                    <li>Download the agent file below.</li><br />
 
                     <button
                       style={{ marginTop: 10 }}
@@ -505,20 +505,20 @@ function Dashboard() {
                       }}
                     >
                       Download Agent
-                    </button>
+                    </button> <br />
                 
-                    <li>Open Terminal / Command Prompt.</li>
-                    <li>Navigate to the folder where the file is downloaded.</li>
-                    <li>Install dependencies:</li>
+                    <li>Open Terminal / Command Prompt.</li><br />
+                    <li>Navigate to the folder where the file is downloaded.</li><br />
+                    <li>Install dependencies:</li><br />
                   </ol>
 
-                  <div className="command-box">npm install axios</div>
+                  <div className="command-box">npm install axios</div><br />
 
-                  <p>Then run:</p>
+                  <p>Then run:</p><br />
 
-                  <div className="command-box">
-                    node intellimon-agent.js --api-key={selectedAgentObj.api_key}
-                  </div>
+                  <div className="command-box"><br />
+                    node intellimon-agent.js --api-key={selectedAgentObj.api_key}<br />
+                  </div><br />
 
                   <button
                     style={{ marginTop: 20 }}
