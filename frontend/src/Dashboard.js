@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
 import "./App.css";
+import useAnimatedNumber from "./hooks/useAnimatedNumber";
 
 const API_BASE = "http://localhost:5000";
+
 
 function Dashboard() {
   const token = localStorage.getItem("token");
@@ -25,12 +27,10 @@ function Dashboard() {
   // ================= ONLINE CHECK =================
   const getStatus = (lastSeen) => {
     if (!lastSeen) return "Offline";
-
     const serverTime = new Date(lastSeen);
     const diff = Date.now() - serverTime.getTime();
-
     return diff < 15000 ? "Online" : "Offline";
-  }; 
+  };
 
   // ================= LOAD OVERVIEW =================
   useEffect(() => {
@@ -55,7 +55,7 @@ function Dashboard() {
       });
   }, [token]);
 
-  // ================= REFRESH AGENT HEARTBEAT =================
+  // ================= HEARTBEAT REFRESH =================
   useEffect(() => {
     if (!token) return;
 
@@ -65,7 +65,7 @@ function Dashboard() {
       })
         .then(res => res.json())
         .then(data => setAgents(data));
-    }, 5000); // refresh every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [token]);
@@ -96,11 +96,23 @@ function Dashboard() {
     return () => socket.disconnect();
   }, [selectedAgent, token]);
 
-  if (!token) return <div>Login required</div>;
-
   const latest = metrics.length ? metrics[metrics.length - 1] : null;
   const selectedAgentObj = agents.find(a => a.id === selectedAgent);
+  // ================= UPTIME CALC =================
+  const uptime = metrics.length
+    ? (
+        (metrics.filter(m => m.error_rate < 5).length / metrics.length) * 100
+      ).toFixed(1)
+    : "100";
 
+  // ================= ANIMATED VALUES =================
+  const animatedLatency = useAnimatedNumber(latest ? latest.latency : 0);
+  const animatedCPU = useAnimatedNumber(latest ? latest.cpu_usage : 0);
+  const animatedMemory = useAnimatedNumber(latest ? latest.memory_usage : 0);
+  const animatedError = useAnimatedNumber(latest ? latest.error_rate : 0);
+  const animatedUptime = useAnimatedNumber(Number(uptime));
+
+  // ================= CHART DATA =================
   const createChartData = (label, data, color) => ({
     labels: metrics.map(m =>
       m?.created_at
@@ -118,40 +130,34 @@ function Dashboard() {
       }
     ]
   });
-
+  
+  if (!token) return <div>Login required</div>;
+  
   return (
     <div className="app-layout">
       <div className="sidebar">
         <h2 className="brand-title">IntelliMon</h2>
 
-        <div
-          className={`nav-item ${activePage === "dashboard" ? "active" : ""}`}
-          onClick={() => setActivePage("dashboard")}
-        >
+        <div className={`nav-item ${activePage === "dashboard" ? "active" : ""}`}
+          onClick={() => setActivePage("dashboard")}>
           Dashboard
         </div>
 
-        <div
-          className={`nav-item ${activePage === "alerts" ? "active" : ""}`}
-          onClick={() => setActivePage("alerts")}
-        >
+        <div className={`nav-item ${activePage === "alerts" ? "active" : ""}`}
+          onClick={() => setActivePage("alerts")}>
           Alerts
         </div>
 
-        <div
-          className={`nav-item ${activePage === "info" ? "active" : ""}`}
-          onClick={() => setActivePage("info")}
-        >
+        <div className={`nav-item ${activePage === "info" ? "active" : ""}`}
+          onClick={() => setActivePage("info")}>
           Info
         </div>
 
-        <div
-          className="nav-item logout"
+        <div className="nav-item logout"
           onClick={() => {
             localStorage.clear();
             window.location.reload();
-          }}
-        >
+          }}>
           Logout
         </div>
       </div>
@@ -182,6 +188,7 @@ function Dashboard() {
               </div>
             </div>
 
+            {/* Agent Status */}
             <div style={{ margin: "20px 0" }}>
               <select
                 value={selectedAgent || ""}
@@ -196,41 +203,61 @@ function Dashboard() {
               </select>
 
               {selectedAgentObj && (
-                <span style={{ marginLeft: 20 }}>
-                  Status:{" "}
-                  <strong className={
+                <div className="agent-status">
+                  <span className={
+                    getStatus(selectedAgentObj.last_seen) === "Online"
+                      ? "status-dot online-dot"
+                      : "status-dot offline-dot"
+                  }></span>
+
+                  <span className={
                     getStatus(selectedAgentObj.last_seen) === "Online"
                       ? "online"
                       : "offline"
                   }>
                     {getStatus(selectedAgentObj.last_seen)}
-                  </strong>
-                </span>
+                  </span>
+
+                  <span className="last-seen">
+                    {selectedAgentObj.last_seen
+                      ? `Last seen ${Math.floor(
+                          (Date.now() - new Date(selectedAgentObj.last_seen).getTime()) / 1000
+                        )}s ago`
+                      : ""}
+                  </span>
+                </div>
               )}
             </div>
 
+            {/* LIVE KPI */}
             <div className="kpi-grid">
               <div className="glass-card kpi-card">
                 <h4>Latency</h4>
-                <h2>{latest ? latest.latency.toFixed(2) : 0} ms</h2>
+                <h2>{animatedLatency.toFixed(2)} ms</h2>
               </div>
 
               <div className="glass-card kpi-card">
                 <h4>CPU Usage</h4>
-                <h2>{latest ? latest.cpu_usage : 0}%</h2>
+                <h2>{animatedCPU.toFixed(0)}%</h2>
               </div>
 
               <div className="glass-card kpi-card">
                 <h4>Memory Usage</h4>
-                <h2>{latest ? latest.memory_usage : 0}%</h2>
+                <h2>{animatedMemory.toFixed(0)}%</h2>
               </div>
 
               <div className="glass-card kpi-card">
                 <h4>Error Rate</h4>
-                <h2>{latest ? latest.error_rate : 0}%</h2>
+                <h2>{animatedError.toFixed(1)}%</h2>
+              </div>
+
+              <div className="glass-card kpi-card">
+                <h4>Uptime</h4>
+                <h2>{animatedUptime.toFixed(1)}%</h2>
               </div>
             </div>
 
+            {/* Charts */}
             <div className="glass-card chart-card">
               <h2>Latency</h2>
               <Line data={createChartData("Latency", metrics.map(m => m.latency), "#00f5ff")} />
@@ -253,7 +280,6 @@ function Dashboard() {
           </>
         )}
 
-        {/* ================= ALERTS ================= */}
         {activePage === "alerts" && (
           <div className="glass-card alert-box">
             <h2>All Alerts</h2>
@@ -266,24 +292,17 @@ function Dashboard() {
           </div>
         )}
 
-        {/* ================= INFO TAB ================= */}
         {activePage === "info" && (
           <div className="glass-card" style={{ padding: 30 }}>
             <h2>System Information</h2>
-
-            <p><strong>Company ID:</strong> {token ? JSON.parse(atob(token.split('.')[1])).companyId : "N/A"}</p>
-
-            <p><strong>Selected Agent ID:</strong> {selectedAgent || "N/A"}</p>
-
+            <p><strong>Company ID:</strong> {JSON.parse(atob(token.split('.')[1])).companyId}</p>
+            <p><strong>Selected Agent ID:</strong> {selectedAgent}</p>
             <p><strong>Backend URL:</strong> {API_BASE}</p>
-
             <p><strong>Metrics Stored:</strong> {metrics.length}</p>
-
-            <p><strong>JWT Present:</strong> {token ? "Yes" : "No"}</p>
-
-            <p><strong>Socket Status:</strong> Connected (if dashboard active)</p>
+            <p><strong>JWT Present:</strong> Yes</p>
           </div>
         )}
+
       </div>
     </div>
   );

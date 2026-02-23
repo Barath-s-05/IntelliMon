@@ -262,3 +262,37 @@ button:disabled {
 .offline {
   color: #ff4d4d;
 }
+.agent-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 20px;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.online-dot {
+  background: #00ff88;
+  box-shadow: 0 0 8px #00ff88;
+  animation: pulse 1.5s infinite;
+}
+
+.offline-dot {
+  background: red;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 5px #00ff88; }
+  50% { box-shadow: 0 0 15px #00ff88; }
+  100% { box-shadow: 0 0 5px #00ff88; }
+}
+
+.last-seen {
+  font-size: 13px;
+  opacity: 0.6;
+}
