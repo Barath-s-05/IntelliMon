@@ -1,28 +1,36 @@
-require('dotenv').config();
-const pool = require('./services/db');
+require("dotenv").config();
+const pool = require("./services/db");
 
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
-const jwt = require('jsonwebtoken');
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const cors = require("cors");
+const jwt = require("jsonwebtoken");
 
-const metricsRoute = require('./routes/metrics');
-const companyRoutes = require('./routes/company');
-const incidentRoutes = require('./routes/incidents');
+const metricsRoute = require("./routes/metrics");
+const companyRoutes = require("./routes/company");
+const incidentRoutes = require("./routes/incidents");
 
 const app = express();
 const server = http.createServer(app);
 
-// ================= SOCKET WITH AUTH =================
-const cors = require("cors");
+// ================= SOCKET SERVER =================
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
+// ================= EXPRESS MIDDLEWARE =================
 app.use(cors({
   origin: "*",
   credentials: true
 }));
 
-// Socket JWT Auth
+app.use(express.json());
+
+// ================= SOCKET JWT AUTH =================
 io.use((socket, next) => {
   try {
     const token = socket.handshake.auth?.token;
@@ -41,17 +49,13 @@ io.use((socket, next) => {
   }
 });
 
-// ================= EXPRESS MIDDLEWARE =================
-app.use(cors());
-app.use(express.json());
-
 // ================= ROUTES =================
-app.use('/metrics', metricsRoute(io));
-app.use('/company', companyRoutes);
-app.use('/incidents', incidentRoutes);
+app.use("/metrics", metricsRoute(io));
+app.use("/company", companyRoutes);
+app.use("/incidents", incidentRoutes);
 
 // ================= SOCKET ROOMS =================
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   console.log("Authenticated client connected:", socket.id);
 
   socket.on("join_agent_room", ({ agentId }) => {
@@ -63,20 +67,21 @@ io.on('connection', (socket) => {
     console.log(`Joined secure room: ${room}`);
   });
 
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
   });
 });
 
 // ================= HEALTH CHECK =================
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.json({ message: "IntelliMon Backend Running Successfully" });
 });
 
-const PORT = 5000;
+// ================= PORT FIX FOR RENDER =================
+const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, async () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 
   try {
     // ================= TABLES =================
@@ -101,7 +106,6 @@ server.listen(PORT, async () => {
       );
     `);
 
-    // Ensure last_seen exists (for existing DBs)
     await pool.query(`
       ALTER TABLE agents
       ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
@@ -135,7 +139,7 @@ server.listen(PORT, async () => {
 
     console.log("Database ready");
 
-    // ================= METRIC RETENTION CLEANUP =================
+    // ================= METRIC RETENTION =================
     setInterval(async () => {
       try {
         await pool.query(`
@@ -147,7 +151,7 @@ server.listen(PORT, async () => {
       } catch (err) {
         console.error("Retention cleanup failed:", err.message);
       }
-    }, 300000); // every 5 minutes
+    }, 300000);
 
   } catch (err) {
     console.error("DB Error:", err.message);

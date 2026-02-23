@@ -1,11 +1,9 @@
-const express = require('express');
-const pool = require('../services/db');
-const authenticateToken = require('../middleware/authMiddleware');
-const { calculateZScore, detectAnomaly } = require('../services/anomalyService');
-const { calculateHealthScore } = require('../services/healthService');
+const express = require("express");
+const pool = require("../services/db");
+const authenticateToken = require("../middleware/authMiddleware");
 
 module.exports = (io) => {
-  const router = express.Router(); // ✅ define router INSIDE factory
+  const router = express.Router();
 
   // ================= VALIDATE AGENT =================
   const validateAgent = async (apiKey) => {
@@ -28,25 +26,19 @@ module.exports = (io) => {
   };
 
   // ================= POST METRICS =================
-  router.post('/', async (req, res) => {
-    console.log("➡️  /metrics hit");
-
+  router.post("/", async (req, res) => {
     try {
-      const apiKey = req.headers['x-api-key'];
+      const apiKey = req.headers["x-api-key"];
 
       if (!apiKey) {
-        console.log("❌ No API key provided");
         return res.status(401).json({ error: "Agent API key required" });
       }
 
       const agent = await validateAgent(apiKey);
 
       if (!agent) {
-        console.log("❌ Invalid API key");
         return res.status(403).json({ error: "Invalid agent API key" });
       }
-
-      console.log("✅ Agent validated:", agent);
 
       const {
         latency,
@@ -63,11 +55,8 @@ module.exports = (io) => {
         cpu_usage == null ||
         memory_usage == null
       ) {
-        console.log("❌ Missing metric fields");
         return res.status(400).json({ error: "Missing metric fields" });
       }
-
-      console.log("📥 Inserting metric...");
 
       const insertResult = await pool.query(
         `INSERT INTO metrics 
@@ -84,7 +73,7 @@ module.exports = (io) => {
           agent.agentId
         ]
       );
-      // Update agent heartbeat
+
       await pool.query(
         `UPDATE agents SET last_seen = NOW() WHERE id = $1`,
         [agent.agentId]
@@ -92,14 +81,15 @@ module.exports = (io) => {
 
       const insertedMetric = insertResult.rows[0];
 
-      // ================= STATISTICAL ANOMALY DETECTION =================
+      // Define room BEFORE using it
+      const room = `company_${agent.companyId}_agent_${agent.agentId}`;
 
-      // Get last 20 latency values
+      // ================= STATISTICAL ANOMALY DETECTION =================
       const history = await pool.query(
         `SELECT latency FROM metrics
-        WHERE agent_id = $1
-        ORDER BY created_at DESC
-        LIMIT 20`,
+         WHERE agent_id = $1
+         ORDER BY created_at DESC
+         LIMIT 20`,
         [agent.agentId]
       );
 
@@ -116,9 +106,7 @@ module.exports = (io) => {
         const stdDev = Math.sqrt(variance);
 
         const zScore =
-          stdDev === 0
-            ? 0
-            : (latency - mean) / stdDev;
+          stdDev === 0 ? 0 : (latency - mean) / stdDev;
 
         if (Math.abs(zScore) > 2) {
 
@@ -127,9 +115,9 @@ module.exports = (io) => {
 
           const alertInsert = await pool.query(
             `INSERT INTO alerts
-            (metric_type, metric_value, anomaly_score, company_id, agent_id)
-            VALUES ($1,$2,$3,$4,$5)
-            RETURNING *`,
+             (metric_type, metric_value, anomaly_score, company_id, agent_id)
+             VALUES ($1,$2,$3,$4,$5)
+             RETURNING *`,
             [
               "latency",
               latency,
@@ -145,29 +133,22 @@ module.exports = (io) => {
           };
 
           io.to(room).emit("anomaly_alert", alertData);
-
-          console.log("⚠ Statistical anomaly stored & emitted");
         }
       }
 
-      console.log("✅ Metric inserted");
-
       // ================= SOCKET EMIT =================
-      const room = `company_${agent.companyId}_agent_${agent.agentId}`;
       io.to(room).emit("metric_update", insertedMetric);
-
-      console.log("📡 Socket emitted to:", room);
 
       return res.json({ success: true });
 
     } catch (err) {
-      console.error("🔥 METRIC ERROR:", err);
+      console.error("Metric insert failed:", err);
       return res.status(500).json({ error: "Metric insert failed" });
     }
   });
 
   // ================= GET HISTORY =================
-  router.get('/history/:agentId', authenticateToken, async (req, res) => {
+  router.get("/history/:agentId", authenticateToken, async (req, res) => {
     try {
       const companyId = req.company.companyId;
       const { agentId } = req.params;
@@ -191,7 +172,7 @@ module.exports = (io) => {
   });
 
   // ================= GET ALERTS =================
-  router.get('/alerts/:agentId', authenticateToken, async (req, res) => {
+  router.get("/alerts/:agentId", authenticateToken, async (req, res) => {
     try {
       const companyId = req.company.companyId;
       const { agentId } = req.params;
