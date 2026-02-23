@@ -5,7 +5,7 @@ import "chart.js/auto";
 import "./App.css";
 import useAnimatedNumber from "./hooks/useAnimatedNumber";
 
-const API_BASE = "https://intellimon.onrender.com";
+const API_BASE = process.env.REACT_APP_API_URL;
 
 function Dashboard() {
   const token = localStorage.getItem("token");
