@@ -1,45 +1,30 @@
-function mean(values) {
-  return values.reduce((a, b) => a + b, 0) / values.length;
-}
+socket.on("metric_update", (data) => {
+  setMetrics(prev => {
+    const updated = [...prev.slice(-49), data];
 
-function stdDev(values) {
-  const avg = mean(values);
-  const squareDiffs = values.map(value => {
-    const diff = value - avg;
-    return diff * diff;
+    if (updated.length > 10) {
+      const latencies = updated.map(m => m.latency);
+
+      const mean =
+        latencies.reduce((a, b) => a + b, 0) / latencies.length;
+
+      const variance =
+        latencies.reduce((a, b) => a + Math.pow(b - mean, 2), 0) /
+        latencies.length;
+
+      const stdDev = Math.sqrt(variance);
+
+      const zScore =
+        stdDev === 0 ? 0 : (data.latency - mean) / stdDev;
+
+      if (Math.abs(zScore) > 2) {
+        console.warn("⚠ Statistical Anomaly Detected", {
+          value: data.latency,
+          zScore: zScore.toFixed(2)
+        });
+      }
+    }
+
+    return updated;
   });
-  return Math.sqrt(mean(squareDiffs));
-}
-
-function calculateZScore(values, newValue) {
-  if (!values || values.length < 5) return 0; // avoid cold start instability
-  const sd = stdDev(values);
-  if (sd === 0) return 0;
-  return (newValue - mean(values)) / sd;
-}
-
-function detectAnomaly(metricType, value, zScore) {
-  // HARD THRESHOLDS
-  if (metricType === "latency" && value > 1500)
-    return { isAnomaly: true, severity: "CRITICAL" };
-
-  if (metricType === "error_rate" && value > 10)
-    return { isAnomaly: true, severity: "CRITICAL" };
-
-  // Z-SCORE BASED
-  if (zScore > 3)
-    return { isAnomaly: true, severity: "CRITICAL" };
-
-  if (zScore > 2)
-    return { isAnomaly: true, severity: "HIGH" };
-
-  if (zScore > 1.5)
-    return { isAnomaly: true, severity: "MEDIUM" };
-
-  return { isAnomaly: false };
-}
-
-module.exports = {
-  calculateZScore,
-  detectAnomaly
-};
+});

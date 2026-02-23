@@ -92,6 +92,64 @@ module.exports = (io) => {
 
       const insertedMetric = insertResult.rows[0];
 
+      // ================= STATISTICAL ANOMALY DETECTION =================
+
+      // Get last 20 latency values
+      const history = await pool.query(
+        `SELECT latency FROM metrics
+        WHERE agent_id = $1
+        ORDER BY created_at DESC
+        LIMIT 20`,
+        [agent.agentId]
+      );
+
+      const latencies = history.rows.map(r => r.latency);
+
+      if (latencies.length > 5) {
+        const mean =
+          latencies.reduce((a, b) => a + b, 0) / latencies.length;
+
+        const variance =
+          latencies.reduce((a, b) => a + Math.pow(b - mean, 2), 0) /
+          latencies.length;
+
+        const stdDev = Math.sqrt(variance);
+
+        const zScore =
+          stdDev === 0
+            ? 0
+            : (latency - mean) / stdDev;
+
+        if (Math.abs(zScore) > 2) {
+
+          const severity =
+            Math.abs(zScore) > 3 ? "CRITICAL" : "WARNING";
+
+          const alertInsert = await pool.query(
+            `INSERT INTO alerts
+            (metric_type, metric_value, anomaly_score, company_id, agent_id)
+            VALUES ($1,$2,$3,$4,$5)
+            RETURNING *`,
+            [
+              "latency",
+              latency,
+              zScore,
+              agent.companyId,
+              agent.agentId
+            ]
+          );
+
+          const alertData = {
+            ...alertInsert.rows[0],
+            severity
+          };
+
+          io.to(room).emit("anomaly_alert", alertData);
+
+          console.log("⚠ Statistical anomaly stored & emitted");
+        }
+      }
+
       console.log("✅ Metric inserted");
 
       // ================= SOCKET EMIT =================
