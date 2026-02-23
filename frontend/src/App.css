@@ -274,13 +274,20 @@ button:disabled {
 .chart-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 25px;
-  margin-top: 30px;
+  gap: 35px;
+  margin-top: 40px;
 }
 
 .chart-card {
-  height: 300px;
-  padding: 20px;
+  height: 340px;
+  padding: 30px 30px 40px 30px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chart-card h2 {
+  margin-bottom: 15px;
 }
 
 /* ================= KPI ALERT GLOW ================= */

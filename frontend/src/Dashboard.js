@@ -149,7 +149,43 @@ function Dashboard() {
   });
 
   const chartOptions = {
-    maintainAspectRatio: false
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: {
+      padding: {
+        top: 10,
+        right: 20,
+        left: 20,
+        bottom: 10
+      }
+    },
+    plugins: {
+      legend: {
+        labels: {
+          color: "#aaa"
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: "#888",
+          maxRotation: 45,
+          minRotation: 45
+        },
+        grid: {
+          color: "rgba(255,255,255,0.05)"
+        }
+      },
+      y: {
+        ticks: {
+          color: "#888"
+        },
+        grid: {
+          color: "rgba(255,255,255,0.05)"
+        }
+      }
+    }
   };
 
   const generateAgentScript = (apiKey) => `
@@ -326,35 +362,47 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* CHARTS (Smaller) */}
+            {/* CHARTS (Clean Contained Layout) */}
             <div className="chart-grid">
 
               <div className="glass-card chart-card">
                 <h2>Latency</h2>
-                <Line options={chartOptions}
-                  data={createChartData("Latency", metrics.map(m => m.latency), "#00f5ff")}
-                />
+                <div style={{ flex: 1, position: "relative" }}>
+                  <Line
+                    options={chartOptions}
+                    data={createChartData("Latency", metrics.map(m => m.latency), "#00f5ff")}
+                  />
+                </div>
               </div>
 
               <div className="glass-card chart-card">
                 <h2>CPU Usage</h2>
-                <Line options={chartOptions}
-                  data={createChartData("CPU", metrics.map(m => m.cpu_usage), "#ff9800")}
-                />
+                <div style={{ flex: 1, position: "relative" }}>
+                  <Line
+                    options={chartOptions}
+                    data={createChartData("CPU", metrics.map(m => m.cpu_usage), "#ff9800")}
+                  />
+                </div>
               </div>
 
               <div className="glass-card chart-card">
                 <h2>Memory Usage</h2>
-                <Line options={chartOptions}
-                  data={createChartData("Memory", metrics.map(m => m.memory_usage), "#4caf50")}
-                />
+                <div style={{ flex: 1, position: "relative" }}>
+                  <Line
+                    options={chartOptions}
+                    data={createChartData("Memory", metrics.map(m => m.memory_usage), "#4caf50")}
+                  />
+                </div>
               </div>
 
               <div className="glass-card chart-card">
                 <h2>Error Rate</h2>
-                <Line options={chartOptions}
-                  data={createChartData("Error", metrics.map(m => m.error_rate), "#f44336")}
-                />
+                <div style={{ flex: 1, position: "relative" }}>
+                  <Line
+                    options={chartOptions}
+                    data={createChartData("Error", metrics.map(m => m.error_rate), "#f44336")}
+                  />
+                </div>
               </div>
 
             </div>
