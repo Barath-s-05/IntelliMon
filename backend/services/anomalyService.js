@@ -1,35 +1,45 @@
-function calculateZScore(values, current) {
-    if (values.length < 5) return 0;
-
-    // Use smaller sliding window for stability
-    const recent = values.slice(0, 10);
-
-    const mean = recent.reduce((a, b) => a + b, 0) / recent.length;
-
-    const variance = recent.reduce((a, b) => {
-        return a + Math.pow(b - mean, 2);
-    }, 0) / recent.length;
-
-    const stdDev = Math.sqrt(variance);
-
-    if (stdDev === 0) return 0;
-
-    return (current - mean) / stdDev;
+function mean(values) {
+  return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
-// Hybrid detection
-function isAnomaly(current, zScore) {
-    const ABSOLUTE_THRESHOLD = 1500;   // hard limit
-    const Z_THRESHOLD = 2.5;           // statistical limit
+function stdDev(values) {
+  const avg = mean(values);
+  const squareDiffs = values.map(value => {
+    const diff = value - avg;
+    return diff * diff;
+  });
+  return Math.sqrt(mean(squareDiffs));
+}
 
-    // Only detect upward spikes
-    if (current > ABSOLUTE_THRESHOLD) return true;
-    if (zScore > Z_THRESHOLD) return true;
+function calculateZScore(values, newValue) {
+  if (!values || values.length < 5) return 0; // avoid cold start instability
+  const sd = stdDev(values);
+  if (sd === 0) return 0;
+  return (newValue - mean(values)) / sd;
+}
 
-    return false;
+function detectAnomaly(metricType, value, zScore) {
+  // HARD THRESHOLDS
+  if (metricType === "latency" && value > 1500)
+    return { isAnomaly: true, severity: "CRITICAL" };
+
+  if (metricType === "error_rate" && value > 10)
+    return { isAnomaly: true, severity: "CRITICAL" };
+
+  // Z-SCORE BASED
+  if (zScore > 3)
+    return { isAnomaly: true, severity: "CRITICAL" };
+
+  if (zScore > 2)
+    return { isAnomaly: true, severity: "HIGH" };
+
+  if (zScore > 1.5)
+    return { isAnomaly: true, severity: "MEDIUM" };
+
+  return { isAnomaly: false };
 }
 
 module.exports = {
-    calculateZScore,
-    isAnomaly
+  calculateZScore,
+  detectAnomaly
 };

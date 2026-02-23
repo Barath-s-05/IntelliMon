@@ -1,44 +1,52 @@
 const express = require('express');
-const router = express.Router();
 const pool = require('../services/db');
-const { calculateZScore, isAnomaly } = require('../services/anomalyService');
+const authenticateToken = require('../middleware/authMiddleware');
+const { calculateZScore, detectAnomaly } = require('../services/anomalyService');
+const { calculateHealthScore } = require('../services/healthService');
 
 module.exports = (io) => {
+  const router = express.Router(); // ✅ define router INSIDE factory
 
+  // ================= VALIDATE AGENT =================
   const validateAgent = async (apiKey) => {
-    const result = await pool.query(
-      `SELECT id, company_id FROM agents WHERE api_key = $1`,
-      [apiKey]
-    );
+    try {
+      const result = await pool.query(
+        `SELECT id, company_id FROM agents WHERE api_key = $1`,
+        [apiKey]
+      );
 
-    if (result.rows.length === 0) return null;
+      if (result.rows.length === 0) return null;
 
-    return {
-      agentId: result.rows[0].id,
-      companyId: result.rows[0].company_id
-    };
+      return {
+        agentId: result.rows[0].id,
+        companyId: result.rows[0].company_id
+      };
+    } catch (err) {
+      console.error("Agent validation error:", err);
+      return null;
+    }
   };
 
-  const validateCompany = async (apiKey) => {
-    const result = await pool.query(
-      `SELECT id FROM companies WHERE api_key = $1`,
-      [apiKey]
-    );
-
-    if (result.rows.length === 0) return null;
-    return result.rows[0].id;
-  };
-
-  // ===============================
-  // POST METRICS
-  // ===============================
+  // ================= POST METRICS =================
   router.post('/', async (req, res) => {
+    console.log("➡️  /metrics hit");
+
     try {
       const apiKey = req.headers['x-api-key'];
-      if (!apiKey) return res.status(401).json({ error: "Agent API key required" });
+
+      if (!apiKey) {
+        console.log("❌ No API key provided");
+        return res.status(401).json({ error: "Agent API key required" });
+      }
 
       const agent = await validateAgent(apiKey);
-      if (!agent) return res.status(403).json({ error: "Invalid agent API key" });
+
+      if (!agent) {
+        console.log("❌ Invalid API key");
+        return res.status(403).json({ error: "Invalid agent API key" });
+      }
+
+      console.log("✅ Agent validated:", agent);
 
       const {
         latency,
@@ -48,10 +56,24 @@ module.exports = (io) => {
         memory_usage
       } = req.body;
 
-      await pool.query(
+      if (
+        latency == null ||
+        error_rate == null ||
+        request_count == null ||
+        cpu_usage == null ||
+        memory_usage == null
+      ) {
+        console.log("❌ Missing metric fields");
+        return res.status(400).json({ error: "Missing metric fields" });
+      }
+
+      console.log("📥 Inserting metric...");
+
+      const insertResult = await pool.query(
         `INSERT INTO metrics 
          (latency, error_rate, request_count, cpu_usage, memory_usage, company_id, agent_id)
-         VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+         VALUES ($1,$2,$3,$4,$5,$6,$7)
+         RETURNING latency, error_rate, request_count, cpu_usage, memory_usage, created_at`,
         [
           latency,
           error_rate,
@@ -62,131 +84,75 @@ module.exports = (io) => {
           agent.agentId
         ]
       );
-
-      const recent = await pool.query(
-        `SELECT latency, error_rate
-         FROM metrics
-         WHERE agent_id = $1
-         ORDER BY created_at DESC
-         LIMIT 20`,
+      // Update agent heartbeat
+      await pool.query(
+        `UPDATE agents SET last_seen = NOW() WHERE id = $1`,
         [agent.agentId]
       );
 
-      const latencyValues = recent.rows.map(r => r.latency);
-      const errorValues = recent.rows.map(r => r.error_rate);
+      const insertedMetric = insertResult.rows[0];
 
-      const latencyZ = calculateZScore(latencyValues, latency);
-      const errorZ = calculateZScore(errorValues, error_rate);
+      console.log("✅ Metric inserted");
 
-      const room = `room_${agent.companyId}_${agent.agentId}`;
+      // ================= SOCKET EMIT =================
+      const room = `company_${agent.companyId}_agent_${agent.agentId}`;
+      io.to(room).emit("metric_update", insertedMetric);
 
-      // Latency alert
-      if (isAnomaly(latency, latencyZ)) {
-        await pool.query(
-          `INSERT INTO alerts
-           (metric_type, metric_value, anomaly_score, company_id, agent_id)
-           VALUES ($1,$2,$3,$4,$5)`,
-          ['latency', latency, latencyZ, agent.companyId, agent.agentId]
-        );
+      console.log("📡 Socket emitted to:", room);
 
-        io.to(room).emit("anomaly_alert", {
-          metric_type: 'latency',
-          metric_value: latency,
-          anomaly_score: latencyZ,
-          created_at: new Date()
-        });
-      }
-
-      // Error alert
-      if (isAnomaly(error_rate, errorZ)) {
-        await pool.query(
-          `INSERT INTO alerts
-           (metric_type, metric_value, anomaly_score, company_id, agent_id)
-           VALUES ($1,$2,$3,$4,$5)`,
-          ['error_rate', error_rate, errorZ, agent.companyId, agent.agentId]
-        );
-
-        io.to(room).emit("anomaly_alert", {
-          metric_type: 'error_rate',
-          metric_value: error_rate,
-          anomaly_score: errorZ,
-          created_at: new Date()
-        });
-      }
-
-      // Emit metric
-      io.to(room).emit("metric_update", {
-        latency,
-        error_rate,
-        request_count,
-        cpu_usage,
-        memory_usage,
-        created_at: new Date()
-      });
-
-      res.json({ success: true });
+      return res.json({ success: true });
 
     } catch (err) {
-      console.error("Metric insert error:", err);
-      res.status(500).json({ error: "Metric insert failed" });
+      console.error("🔥 METRIC ERROR:", err);
+      return res.status(500).json({ error: "Metric insert failed" });
     }
   });
 
-  // ===============================
-  // GET HISTORY
-  // ===============================
-  router.get('/history/:agentId', async (req, res) => {
+  // ================= GET HISTORY =================
+  router.get('/history/:agentId', authenticateToken, async (req, res) => {
     try {
-      const apiKey = req.headers['x-api-key'];
+      const companyId = req.company.companyId;
       const { agentId } = req.params;
-
-      const companyId = await validateCompany(apiKey);
-      if (!companyId) return res.status(403).json({ error: "Invalid company API key" });
 
       const result = await pool.query(
         `SELECT latency, error_rate, request_count,
                 cpu_usage, memory_usage, created_at
          FROM metrics
-         WHERE company_id = $1
-         AND agent_id = $2
+         WHERE company_id=$1 AND agent_id=$2
          ORDER BY created_at DESC
          LIMIT 50`,
         [companyId, agentId]
       );
 
-      res.json(result.rows.reverse());
+      return res.json(result.rows.reverse());
 
     } catch (err) {
-      res.status(500).json({ error: "History fetch failed" });
+      console.error("History fetch error:", err);
+      return res.status(500).json({ error: "History fetch failed" });
     }
   });
 
-  // ===============================
-  // GET ALERTS
-  // ===============================
-  router.get('/alerts/:agentId', async (req, res) => {
+  // ================= GET ALERTS =================
+  router.get('/alerts/:agentId', authenticateToken, async (req, res) => {
     try {
-      const apiKey = req.headers['x-api-key'];
+      const companyId = req.company.companyId;
       const { agentId } = req.params;
-
-      const companyId = await validateCompany(apiKey);
-      if (!companyId) return res.status(403).json({ error: "Invalid company API key" });
 
       const result = await pool.query(
         `SELECT metric_type, metric_value,
                 anomaly_score, created_at
          FROM alerts
-         WHERE company_id = $1
-         AND agent_id = $2
+         WHERE company_id=$1 AND agent_id=$2
          ORDER BY created_at DESC
          LIMIT 20`,
         [companyId, agentId]
       );
 
-      res.json(result.rows);
+      return res.json(result.rows);
 
     } catch (err) {
-      res.status(500).json({ error: "Alert fetch failed" });
+      console.error("Alert fetch error:", err);
+      return res.status(500).json({ error: "Alert fetch failed" });
     }
   });
 

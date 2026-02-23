@@ -1,20 +1,19 @@
-// services/db.js
+const { Pool } = require("pg");
 
-const { Pool } = require('pg');
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL not defined in .env");
+}
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
-pool.on('connect', () => {
-    console.log('Connected to PostgreSQL');
-});
-
-pool.on('error', (err) => {
-    console.error('Unexpected DB error', err);
-});
+// Test connection
+pool.connect()
+  .then(() => console.log("Connected to PostgreSQL"))
+  .catch(err => console.error("DB Connection Error:", err));
 
 module.exports = pool;
