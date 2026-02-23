@@ -506,6 +506,7 @@ function Dashboard() {
                     >
                       Download Agent
                     </button> <br />
+                    <br />
                 
                     <li>Open Terminal / Command Prompt.</li><br />
                     <li>Navigate to the folder where the file is downloaded.</li><br />
@@ -529,7 +530,7 @@ function Dashboard() {
                     }}
                   >
                     Copy Command
-                  </button>
+                  </button><br /> 
 
                   <p style={{ marginTop: 10, opacity: 0.7 }}>
                     Make sure you are inside the same folder where
