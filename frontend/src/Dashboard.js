@@ -452,18 +452,17 @@ function Dashboard() {
                 <p><strong>Agent ID:</strong> {selectedAgentObj.id}</p>
 
                 <div className="api-key-box">
-                  <strong>API Key:</strong><br />
-                  {selectedAgentObj.api_key}
+                  <strong>API Key:</strong>{selectedAgentObj.api_key}
                 </div>
 
-                <div style={{ marginTop: 20 }}>
+                {/* <div style={{ marginTop: 20 }}>
                   <strong>Run Command:</strong>
                   <div className="command-box">
                     node intellimon-agent.js --api-key={selectedAgentObj.api_key}
                   </div>
-                </div>
+                </div> */}
 
-                <button
+                {/* <button
                   style={{ marginTop: 20 }}
                   onClick={() => {
                     navigator.clipboard.writeText(
@@ -472,9 +471,9 @@ function Dashboard() {
                   }}
                 >
                   Copy Command
-                </button>
+                </button> */}
 
-                <button
+                {/* <button
                   style={{ marginTop: 10 }}
                   onClick={() => {
                     const blob = new Blob([generateAgentScript(selectedAgentObj.api_key)], { type: "text/javascript" });
@@ -486,13 +485,28 @@ function Dashboard() {
                   }}
                 >
                   Download Agent
-                </button>
+                </button> */}
 
                 <div className="install-steps">
                   <h3>Installation Steps</h3>
 
                   <ol>
                     <li>Download the agent file below.</li>
+
+                    <button
+                      style={{ marginTop: 10 }}
+                      onClick={() => {
+                        const blob = new Blob([generateAgentScript(selectedAgentObj.api_key)], { type: "text/javascript" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = "intellimon-agent.js";
+                        a.click();
+                      }}
+                    >
+                      Download Agent
+                    </button>
+                
                     <li>Open Terminal / Command Prompt.</li>
                     <li>Navigate to the folder where the file is downloaded.</li>
                     <li>Install dependencies:</li>
@@ -505,6 +519,17 @@ function Dashboard() {
                   <div className="command-box">
                     node intellimon-agent.js --api-key={selectedAgentObj.api_key}
                   </div>
+
+                  <button
+                    style={{ marginTop: 20 }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        `node intellimon-agent.js --api-key=${selectedAgentObj.api_key}`
+                      );
+                    }}
+                  >
+                    Copy Command
+                  </button>
 
                   <p style={{ marginTop: 10, opacity: 0.7 }}>
                     Make sure you are inside the same folder where
