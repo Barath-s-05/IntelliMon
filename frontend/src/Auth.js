@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const API_BASE = "http://localhost:5000";
+const API = process.env.REACT_APP_API_URL;
 
 function Auth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -17,9 +17,11 @@ function Auth({ onLogin }) {
     try {
       const endpoint = isLogin ? "/company/login" : "/company/register";
 
-      const res = await fetch(`${API_BASE}${endpoint}`, {
+      const res = await fetch(`${API}${endpoint}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify(form)
       });
 
@@ -39,6 +41,7 @@ function Auth({ onLogin }) {
       }
 
     } catch (err) {
+      console.error("Login error:", err);
       setError("Server error");
     }
   };
@@ -52,21 +55,27 @@ function Auth({ onLogin }) {
           <input
             placeholder="Company Name"
             value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, name: e.target.value })
+            }
           />
         )}
 
         <input
           placeholder="Email"
           value={form.email}
-          onChange={e => setForm({ ...form, email: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, email: e.target.value })
+          }
         />
 
         <input
           type="password"
           placeholder="Password"
           value={form.password}
-          onChange={e => setForm({ ...form, password: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, password: e.target.value })
+          }
         />
 
         {error && <p style={{ color: "red" }}>{error}</p>}
@@ -78,8 +87,11 @@ function Auth({ onLogin }) {
         <div
           className="toggle-auth"
           onClick={() => setIsLogin(!isLogin)}
+          style={{ cursor: "pointer", marginTop: "10px" }}
         >
-          {isLogin ? "Create account" : "Already have an account?"}
+          {isLogin
+            ? "Create account"
+            : "Already have an account?"}
         </div>
       </div>
     </div>
