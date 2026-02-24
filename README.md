@@ -1,235 +1,235 @@
-🚀 IntelliMon
+# 🚀 IntelliMon
 
-IntelliMon is a full-stack monitoring and incident management system built for companies to track system health, detect anomalies, and manage incidents through a secure dashboard.
+**IntelliMon** is a full-stack monitoring and incident management system designed for companies to track system health, detect anomalies, and manage operational incidents through a secure dashboard.
 
-It includes authentication, metrics tracking, anomaly detection services, and a simulated monitoring engine.
+It features JWT-based authentication, modular backend services, simulated metric generation, anomaly detection logic, and cloud deployment using modern DevOps practices.
 
-🌐 Live Deployment
+---
 
-Frontend (Vercel):
-https://your-frontend.vercel.app
+## 🌐 Live Deployment
 
-Backend (Render):
-https://intellimon.onrender.com
+- **Frontend (Vercel):**  
+  https://your-frontend.vercel.app  
 
-🏗️ Architecture Overview
-Frontend (React - Vercel)
-        ↓
-Backend (Node + Express - Render)
-        ↓
+- **Backend (Render):**  
+  https://intellimon.onrender.com  
+
+---
+
+## 🏗️ System Architecture
+
+
+User
+↓
+React Frontend (Vercel)
+↓
+Node + Express Backend (Render)
+↓
 PostgreSQL Database (Neon)
-        ↓
+↓
 Monitoring Services & Simulator
-🛠️ Tech Stack
-Frontend
 
-React.js
 
-Custom Hooks
+---
 
-Glass UI Styling
+## 🛠️ Tech Stack
 
-Fetch API
+### Frontend
+- React.js
+- Custom Hooks
+- Fetch API
+- CSS (Glass UI)
+- Environment-based API configuration
+- Hosted on Vercel
 
-Environment-based API configuration
+### Backend
+- Node.js
+- Express.js
+- JWT Authentication
+- PostgreSQL (Neon DB)
+- Modular Service Architecture
+- Hosted on Render
 
-Hosted on Vercel
+---
 
-Backend
+## 📁 Project Structure
 
-Node.js
 
-Express.js
-
-JWT Authentication
-
-PostgreSQL (Neon)
-
-Modular service architecture
-
-Hosted on Render
-
-📁 Project Structure
 INTELLIMON
 │
 ├── backend
-│   ├── middleware
-│   │   └── authMiddleware.js
-│   │
-│   ├── routes
-│   │   ├── company.js
-│   │   ├── incidents.js
-│   │   └── metrics.js
-│   │
-│   ├── services
-│   │   ├── anomalyService.js
-│   │   ├── db.js
-│   │   └── healthService.js
-│   │
-│   ├── simulator.js
-│   ├── server.js
-│   ├── .env
-│   └── package.json
+│ ├── middleware
+│ │ └── authMiddleware.js
+│ │
+│ ├── routes
+│ │ ├── company.js
+│ │ ├── incidents.js
+│ │ └── metrics.js
+│ │
+│ ├── services
+│ │ ├── anomalyService.js
+│ │ ├── db.js
+│ │ └── healthService.js
+│ │
+│ ├── simulator.js
+│ ├── server.js
+│ ├── .env
+│ └── package.json
 │
 ├── frontend
-│   ├── src
-│   │   ├── hooks
-│   │   ├── Auth.js
-│   │   ├── Dashboard.js
-│   │   └── App.js
-│   │
-│   ├── .env.production
-│   └── package.json
-🔐 Features
+│ ├── src
+│ │ ├── hooks
+│ │ ├── Auth.js
+│ │ ├── Dashboard.js
+│ │ └── App.js
+│ │
+│ ├── .env.production
+│ └── package.json
+│
+└── README.md
 
-Company Registration & Login
 
-JWT-based authentication
+---
 
-Protected API routes
+## 🔐 Features
 
-Real-time metric simulation
+- Company Registration & Login
+- JWT-based authentication
+- Protected API routes
+- Real-time metric simulation
+- Incident creation & tracking
+- Anomaly detection service
+- Health monitoring service
+- Modular backend architecture
 
-Incident logging
+---
 
-Anomaly detection service
+## 🔌 API Endpoints
 
-Health monitoring service
+### Authentication
 
-Modular backend design
+POST /company/register
+POST /company/login
 
-🔄 Core Backend Modules
-authMiddleware.js
 
-Validates JWT token for protected routes.
+### Metrics
 
-company.js
+GET /metrics
+POST /metrics
 
-Handles:
 
-Company registration
+### Incidents
 
-Login
+GET /incidents
+POST /incidents
 
-Token generation
 
-metrics.js
+---
 
-Handles:
+## ⚙️ Environment Variables
 
-Metrics ingestion
+### Backend (Render)
 
-Metrics retrieval
 
-incidents.js
-
-Handles:
-
-Incident creation
-
-Incident retrieval
-
-anomalyService.js
-
-Implements anomaly detection logic on system metrics.
-
-healthService.js
-
-Tracks system health state.
-
-simulator.js
-
-Simulates system metrics for testing and demo purposes.
-
-⚙️ Environment Variables
-Backend (Render)
 DATABASE_URL=your_postgres_connection_string
 JWT_SECRET=your_secret_key
 PORT=5000
-Frontend (Vercel)
+
+
+### Frontend (Vercel)
+
+
 REACT_APP_API_URL=https://intellimon.onrender.com
 
-Important:
-For Vercel, environment variables must be added in the Vercel dashboard.
 
-🛠️ Running Locally
-Clone Repository
+⚠️ Note:  
+Environment variables must be configured in the respective hosting platform dashboards (Render & Vercel).
+
+---
+
+## 🛠️ Running Locally
+
+### 1️⃣ Clone the Repository
+
+
 git clone https://github.com/your-username/IntelliMon.git
+
 cd IntelliMon
-Run Backend
+
+
+---
+
+### 2️⃣ Run Backend
+
+
 cd backend
 npm install
 npm start
 
-Runs on:
+
+Backend runs at:
 
 http://localhost:5000
-Run Frontend
+
+
+---
+
+### 3️⃣ Run Frontend
+
+
 cd frontend
 npm install
 npm start
 
-Runs on:
+
+Frontend runs at:
 
 http://localhost:3000
-🔌 API Endpoints
-Authentication
-POST /company/register
-POST /company/login
-Metrics
-GET /metrics
-POST /metrics
-Incidents
-GET /incidents
-POST /incidents
-🚀 Deployment Strategy
 
-Frontend:
 
-Hosted on Vercel
+---
 
-Environment variables set in Vercel dashboard
+## 🔄 Application Flow
 
-Backend:
+1. Company registers or logs in
+2. Backend generates JWT token
+3. Token stored in localStorage
+4. Authenticated requests sent to backend
+5. Simulator generates system metrics
+6. Anomaly service evaluates metrics
+7. Incidents generated when thresholds are crossed
+8. Dashboard visualizes metrics and incidents
 
-Hosted on Render
+---
 
-Environment variables configured in Render
+## 🚀 Deployment Strategy
 
-Free tier may sleep after inactivity
+- Frontend deployed on **Vercel**
+- Backend deployed on **Render**
+- PostgreSQL database hosted on **Neon**
+- Environment-based configuration for production safety
 
-🧠 System Flow
+---
 
-Company logs in
+## 🔮 Future Enhancements
 
-JWT token stored in localStorage
+- Real-time updates using WebSockets
+- Role-based access control
+- Email/SMS alert notifications
+- ML-based anomaly detection
+- Multi-tenant company isolation
+- CI/CD automation
 
-Authenticated requests sent to backend
+---
 
-Simulator generates metrics
+## 👨‍💻 Author
 
-Anomaly service evaluates metrics
+**Barath S**  
+Computer Science Student  
+Full Stack Developer  
 
-Incidents generated if thresholds crossed
+---
 
-Dashboard visualizes data
+## 📄 License
 
-🔮 Future Improvements
-
-WebSocket real-time streaming
-
-Role-based access control
-
-Alert notifications (Email / Slack)
-
-ML-based anomaly detection
-
-Multi-tenant isolation
-
-Production monitoring integrations
-
-👨‍💻 Author
-
-Barath S
-Computer Science Student
-Full Stack Developer
+This project is for educational and demonstration purposes.
