@@ -52,45 +52,6 @@ Monitoring Services & Simulator
 
 ---
 
-## 📁 Project Structure
-
-
-INTELLIMON
-│
-├── backend
-│ ├── middleware
-│ │ └── authMiddleware.js
-│ │
-│ ├── routes
-│ │ ├── company.js
-│ │ ├── incidents.js
-│ │ └── metrics.js
-│ │
-│ ├── services
-│ │ ├── anomalyService.js
-│ │ ├── db.js
-│ │ └── healthService.js
-│ │
-│ ├── simulator.js
-│ ├── server.js
-│ ├── .env
-│ └── package.json
-│
-├── frontend
-│ ├── src
-│ │ ├── hooks
-│ │ ├── Auth.js
-│ │ ├── Dashboard.js
-│ │ └── App.js
-│ │
-│ ├── .env.production
-│ └── package.json
-│
-└── README.md
-
-
----
-
 ## 🔐 Features
 
 - Company Registration & Login
