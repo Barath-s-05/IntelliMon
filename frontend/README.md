@@ -1,70 +1,235 @@
-# Getting Started with Create React App
+🚀 IntelliMon
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+IntelliMon is a full-stack monitoring and incident management system built for companies to track system health, detect anomalies, and manage incidents through a secure dashboard.
 
-## Available Scripts
+It includes authentication, metrics tracking, anomaly detection services, and a simulated monitoring engine.
 
-In the project directory, you can run:
+🌐 Live Deployment
 
-### `npm start`
+Frontend (Vercel):
+https://your-frontend.vercel.app
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Backend (Render):
+https://intellimon.onrender.com
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+🏗️ Architecture Overview
+Frontend (React - Vercel)
+        ↓
+Backend (Node + Express - Render)
+        ↓
+PostgreSQL Database (Neon)
+        ↓
+Monitoring Services & Simulator
+🛠️ Tech Stack
+Frontend
 
-### `npm test`
+React.js
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Custom Hooks
 
-### `npm run build`
+Glass UI Styling
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Fetch API
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Environment-based API configuration
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Hosted on Vercel
 
-### `npm run eject`
+Backend
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Node.js
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Express.js
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+JWT Authentication
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+PostgreSQL (Neon)
 
-## Learn More
+Modular service architecture
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Hosted on Render
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+📁 Project Structure
+INTELLIMON
+│
+├── backend
+│   ├── middleware
+│   │   └── authMiddleware.js
+│   │
+│   ├── routes
+│   │   ├── company.js
+│   │   ├── incidents.js
+│   │   └── metrics.js
+│   │
+│   ├── services
+│   │   ├── anomalyService.js
+│   │   ├── db.js
+│   │   └── healthService.js
+│   │
+│   ├── simulator.js
+│   ├── server.js
+│   ├── .env
+│   └── package.json
+│
+├── frontend
+│   ├── src
+│   │   ├── hooks
+│   │   ├── Auth.js
+│   │   ├── Dashboard.js
+│   │   └── App.js
+│   │
+│   ├── .env.production
+│   └── package.json
+🔐 Features
 
-### Code Splitting
+Company Registration & Login
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+JWT-based authentication
 
-### Analyzing the Bundle Size
+Protected API routes
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Real-time metric simulation
 
-### Making a Progressive Web App
+Incident logging
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Anomaly detection service
 
-### Advanced Configuration
+Health monitoring service
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Modular backend design
 
-### Deployment
+🔄 Core Backend Modules
+authMiddleware.js
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Validates JWT token for protected routes.
 
-### `npm run build` fails to minify
+company.js
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Handles:
+
+Company registration
+
+Login
+
+Token generation
+
+metrics.js
+
+Handles:
+
+Metrics ingestion
+
+Metrics retrieval
+
+incidents.js
+
+Handles:
+
+Incident creation
+
+Incident retrieval
+
+anomalyService.js
+
+Implements anomaly detection logic on system metrics.
+
+healthService.js
+
+Tracks system health state.
+
+simulator.js
+
+Simulates system metrics for testing and demo purposes.
+
+⚙️ Environment Variables
+Backend (Render)
+DATABASE_URL=your_postgres_connection_string
+JWT_SECRET=your_secret_key
+PORT=5000
+Frontend (Vercel)
+REACT_APP_API_URL=https://intellimon.onrender.com
+
+Important:
+For Vercel, environment variables must be added in the Vercel dashboard.
+
+🛠️ Running Locally
+Clone Repository
+git clone https://github.com/your-username/IntelliMon.git
+cd IntelliMon
+Run Backend
+cd backend
+npm install
+npm start
+
+Runs on:
+
+http://localhost:5000
+Run Frontend
+cd frontend
+npm install
+npm start
+
+Runs on:
+
+http://localhost:3000
+🔌 API Endpoints
+Authentication
+POST /company/register
+POST /company/login
+Metrics
+GET /metrics
+POST /metrics
+Incidents
+GET /incidents
+POST /incidents
+🚀 Deployment Strategy
+
+Frontend:
+
+Hosted on Vercel
+
+Environment variables set in Vercel dashboard
+
+Backend:
+
+Hosted on Render
+
+Environment variables configured in Render
+
+Free tier may sleep after inactivity
+
+🧠 System Flow
+
+Company logs in
+
+JWT token stored in localStorage
+
+Authenticated requests sent to backend
+
+Simulator generates metrics
+
+Anomaly service evaluates metrics
+
+Incidents generated if thresholds crossed
+
+Dashboard visualizes data
+
+🔮 Future Improvements
+
+WebSocket real-time streaming
+
+Role-based access control
+
+Alert notifications (Email / Slack)
+
+ML-based anomaly detection
+
+Multi-tenant isolation
+
+Production monitoring integrations
+
+👨‍💻 Author
+
+Barath S
+Computer Science Student
+Full Stack Developer
